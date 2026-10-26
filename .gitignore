@@ -5,3 +5,4 @@ __pycache__/
 .ipynb_checkpoints/
 _run_full*.ipynb
 checkpoints_cifar/
+checkpoints_depth/

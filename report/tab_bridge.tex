@@ -1,0 +1,12 @@
+\begin{tabular}{llrrlrrr}
+\toprule
+Condition & Images & Train & Res. & Head & Dead, $N_{BN}$=32 & OSI, $N_{BN}$=1 ($<$2) & $\Delta$ [90\% interval] \\
+\midrule
+control & CIFAR-10 & 45\,000 & 32 & flatten + FC & 145/160 & 1.25 (4/5) & 0.24 [$-$0.66, 1.20] \\
+data & CIFAR-10 & 4\,500 & 32 & flatten + FC & 124/160 & 1.48 (3/5) & $-$0.05 [$-$0.58, 0.63] \\
+stl32 & STL-10 & 4\,500 & 32 & flatten + FC & 106/160 & 1.41 (4/5) & 0.52 [0.24, 0.65] \\
+stl32\_pool & STL-10 & 4\,500 & 32 & pool + GAP & 26/160 & 2.69 (1/5) & $-$0.05 [$-$0.37, 0.31] \\
+sweep & STL-10 & 4\,500 & 96 & pool + GAP & 46/160 & 2.95 (2/5) & 0.27 [$-$0.33, 0.75] \\
+head & CIFAR-10 & 45\,000 & 32 & pool + GAP & 14/160 & 1.36 (4/5) & 0.44 [$-$0.13, 0.73] \\
+\bottomrule
+\end{tabular}

@@ -162,4 +162,19 @@ for b in [1, 4, 32]:
         a = ctrl[(ctrl.bottleneck == b) & (ctrl.cortex_layers == cl)]; f = ctrl_f[(ctrl_f.probe == 'natural') & (ctrl_f.bottleneck == b) & (ctrl_f.cortex_layers == cl)]; lv = f[f.label != 'dead']
         rows.append([b, cl, f'{a.test_acc.mean():.3f} $\\pm$ {a.test_acc.std():.3f}', int(a.first_val_acc.notna().sum()), f'{len(lv)}/{len(f)}', int((f.label == 'center-surround').sum()), f'{lv.osi.median():.2f}', f'{(lv.osi < 2).sum()}/{len(lv)}'])
 tex(pd.DataFrame(rows, columns=['$N_{BN}$', 'Depth', 'Test acc.', 'Collapsed', 'Live/ch.', 'C-S', 'Median OSI', 'OSI$<$2']), 'tab_control', index=False, column_format='rrcrrrrr')
+
+# bridge experiment: one factor at a time from the paper's setup (control) to mine (sweep); same rule as the notebook (Delta, 90% bootstrap over seeds)
+bf = pd.read_csv('results/bridge_filters.csv')
+BR = [('control', 'CIFAR-10', '45\\,000', 32, 'flatten + FC'), ('data', 'CIFAR-10', '4\\,500', 32, 'flatten + FC'), ('stl32', 'STL-10', '4\\,500', 32, 'flatten + FC'),
+      ('stl32_pool', 'STL-10', '4\\,500', 32, 'pool + GAP'), ('sweep', 'STL-10', '4\\,500', 96, 'pool + GAP'), ('head', 'CIFAR-10', '45\\,000', 32, 'pool + GAP')]
+def delta_median(d):
+    nr, wd = d[d.bottleneck.isin([1, 4])].osi, d[d.bottleneck == 32].osi
+    return wd.median() - nr.median() if len(nr) and len(wd) else np.nan
+rng = np.random.default_rng(0); rows = []
+for c, ds, n, res, head in BR:
+    da, d = bf[bf.condition == c], bf[(bf.condition == c) & (bf.label != 'dead')]; seeds = sorted(da.seed.unique())
+    bt = np.array([delta_median(pd.concat([d[d.seed == s] for s in rng.choice(seeds, len(seeds))])) for _ in range(2000)]); lo, hi = np.nanpercentile(bt, [5, 95])
+    b1, w = d[d.bottleneck == 1], da[da.bottleneck == 32]
+    rows.append([c.replace('_', '\\_'), ds, n, res, head, f'{(w.label == "dead").sum()}/{len(w)}', f'{b1.osi.median():.2f} ({(b1.osi < 2).sum()}/{len(b1)})', f'{delta_median(d):.2f} [{lo:.2f}, {hi:.2f}]'.replace('-', '$-$')])
+tex(pd.DataFrame(rows, columns=['Condition', 'Images', 'Train', 'Res.', 'Head', 'Dead, $N_{BN}$=32', 'OSI, $N_{BN}$=1 ($<$2)', '$\\Delta$ [90\\% interval]']), 'tab_bridge', index=False, column_format='llrrlrrr')
 print('tables written')

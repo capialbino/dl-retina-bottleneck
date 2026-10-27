@@ -6,3 +6,4 @@ __pycache__/
 _run_full*.ipynb
 checkpoints_cifar/
 checkpoints_depth/
+checkpoints_bridge/

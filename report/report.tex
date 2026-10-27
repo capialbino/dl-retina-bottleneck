@@ -195,9 +195,7 @@ To separate the effect of my setup from the effect of my analysis, I trained the
 I tested whether the unstated choices of my recipe explain the many dead channels (CIFAR-10, $\NBN=32$, depth 2, seed 0): with my recipe 28 of 32 retinal channels are dead; without the input centring 27; without centring and flip 26--27; and the final epoch rather than the best-validation checkpoint gives the same count. At $\NBN=4$ without centring and flip, 2 of 4 channels are dead. None of these choices matters, so the dead channels are a property of the paper's recipe in my implementation as far as I can tell (one seed, four runs). The validation curves are noisy (peaks of $0.55$--$0.58$ followed by oscillations), typical of RMSProp at lr $10^{-3}$.
 
 \section{Discussion}\label{sec:disc}
-\paragraph{What reproduces.} (iii) accuracy increases with the width and the depth; (ii) linearity decreases with the width and increases with the depth at the tightest bottleneck; (i) the first cortical layer is more oriented than the retina at narrow bottlenecks, with OSI values around those of the paper; and, in the original setting, the OSI of the one-channel retina ($1.60$ against $1.56$).
-
-Table~\ref{tab:claims} summarises the status of each claim.
+\paragraph{What reproduces.} (iii) accuracy increases with the width and the depth; (ii) linearity decreases with the width and increases with the depth at the tightest bottleneck; (i) the first cortical layer is more oriented than the retina at narrow bottlenecks, with OSI values around those of the paper; and, in the original setting, the OSI of the one-channel retina ($1.60$ against $1.56$). Table~\ref{tab:claims} summarises the status of each claim.
 
 \paragraph{What does not.} In my setup the retinal filters are mostly oriented, the center-surround labels are rare, and the one-channel retina is isotropic on Imagenette (1.47) but not on STL-10 (2.90). The linearity effect of the depth does not appear at 4 and 32 channels. The hypotheses H1 and H2, as written, are not confirmed, although they were not exactly the claims of the paper.
 

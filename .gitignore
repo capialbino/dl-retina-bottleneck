@@ -7,3 +7,6 @@ _run_full*.ipynb
 checkpoints_cifar/
 checkpoints_depth/
 checkpoints_bridge/
+checkpoints_bias/
+checkpoints_official/
+runs/

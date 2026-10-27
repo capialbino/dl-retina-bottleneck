@@ -9,4 +9,5 @@ checkpoints_depth/
 checkpoints_bridge/
 checkpoints_bias/
 checkpoints_official/
-runs/
+runs/*
+!runs/*.py

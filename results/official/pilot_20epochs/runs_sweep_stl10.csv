@@ -1,0 +1,2 @@
+group,dataset,seed,bottleneck,retina_layers,cortex_layers,val_acc,test_acc,first_val_acc,lr,time_s
+sweep_stl10,stl10,0,1,2,2,0.128,0.120125,0.198,3.3333333333333335e-05,543.6674211025238

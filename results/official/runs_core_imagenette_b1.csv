@@ -1,0 +1,4 @@
+group,dataset,seed,bottleneck,retina_layers,cortex_layers,val_acc,test_acc,first_val_acc,lr,epochs,time_s
+core_imagenette_b1,imagenette,0,1,2,2,0.43023255813953487,0.4364331210191083,,0.0001,117,5817.151378393173
+core_imagenette_b1,imagenette,1,1,2,2,0.5179704016913319,0.5011464968152867,,0.0001,117,7052.563529968262
+core_imagenette_b1,imagenette,2,1,2,2,0.4682875264270613,0.4805095541401274,,0.0001,117,5971.3026034832

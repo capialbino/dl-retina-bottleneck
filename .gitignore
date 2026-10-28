@@ -1,0 +1,13 @@
+data/
+checkpoints/
+checkpoints_v1_adam/
+__pycache__/
+.ipynb_checkpoints/
+_run_full*.ipynb
+checkpoints_cifar/
+checkpoints_depth/
+checkpoints_bridge/
+checkpoints_bias/
+checkpoints_official/
+runs/*
+!runs/*.py

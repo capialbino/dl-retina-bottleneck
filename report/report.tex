@@ -13,6 +13,7 @@
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{0pt}
 \usepackage{microtype}
+\usepackage{placeins}
 \frenchspacing
 \newcommand{\NBN}{N_{\mathrm{BN}}}
 \newcommand{\DVVS}{D_{\mathrm{VVS}}}
@@ -169,7 +170,15 @@ These runs used lr $10^{-3}$, batch 32, centred inputs, flip only and the best-v
 \caption{Recipe of the text: test accuracy (mean $\pm$ s.d.\ over 3 seeds) against cortex depth for three bottlenecks (left, centre) and against bottleneck width at cortex depth 2 (right).}\label{fig:acc}
 \end{figure}
 
-\paragraph{Retinal RFs (claim i).} Of the 702 retinal channels of the sweep, 22 are labelled center-surround, 270 oriented, 316 other and 94 dead (13\%); the median OSI of the live channels is $2.5$, and 37\% are below 2 but only 12\% below $1.40$ (the 25th percentile of noise). At $\NBN=1$, $\DVVS=2$ the one-channel retina has OSI $1.22$, $1.51$, $1.69$ on Imagenette (mean $1.47$) and $1.84$, $3.23$, $3.62$ on STL-10 (mean $2.90$). In the configuration of H1 ($\NBN=2$, $\DVVS=4$) 1 of 6 channels is center-surround on each dataset. At fixed width, depth 2 has more oriented channels than depth 4 in three of four comparisons (e.g.\ $\NBN=16$: 22/48 against 14/48 on STL-10), as H2 is worded. The first cortical layer has median OSI $2.4$--$5.3$ and is more oriented than the retina at $\NBN\le4$ in 4 of 6 cells.
+\paragraph{Retinal RFs (claim i).} Of the 702 retinal channels of the sweep, 22 are labelled center-surround, 270 oriented, 316 other and 94 dead (13\%); the median OSI of the live channels is $2.5$, and 37\% are below 2 but only 12\% below $1.40$ (the 25th percentile of noise). At $\NBN=1$, $\DVVS=2$ the one-channel retina has OSI $1.22$, $1.51$, $1.69$ on Imagenette (mean $1.47$) and $1.84$, $3.23$, $3.62$ on STL-10 (mean $2.90$). In the configuration of H1 ($\NBN=2$, $\DVVS=4$) 1 of 6 channels is center-surround on each dataset. At fixed width, depth 2 has more oriented channels than depth 4 in three of four comparisons (e.g.\ $\NBN=16$: 22/48 against 14/48 on STL-10), as H2 is worded. Table~\ref{tab:labels} gives the details. The first cortical layer (Fig.~\ref{fig:layer1}) has median OSI $2.4$--$5.3$ and is more oriented than the retina at $\NBN\le4$ in 4 of 6 cells.
+\begin{table}[t]\centering\small
+\input{tab_labels}
+\caption{Recipe of the text: labels of the retinal channels of the sweep (retina depth 2, cortex depth 2; C-S = center-surround), median OSI of the live channels and number of live channels with OSI $<2$.}\label{tab:labels}
+\end{table}
+\begin{figure}[t]\centering
+\includegraphics[width=0.85\textwidth]{figs/fig_layer1.pdf}
+\caption{Recipe of the text: median OSI (my implementation) of the live channels of the retinal output and of the first cortical layer (cortex depth 2). Dashed: paper's retina (1.56); dotted: paper's first cortical layer (3.05).}\label{fig:layer1}
+\end{figure}
 
 \paragraph{Linearity and information (claim ii).} Retinal linearity decreases with the width at depth 2 (Imagenette $0.73\to0.42$, STL-10 $0.62\to0.39$ from 1 to 32 channels) and increases with the cortex depth only at $\NBN=1$ ($0.52\to0.76$ on STL-10, $0.65\to0.76$ on Imagenette, depth 1 to 4), the case the paper highlights; at 4 and 32 channels it is flat or peaks at depth 2 (Fig.~\ref{fig:lin}). The information kept by the retina (local reconstruction of the centre pixel from a $9{\times}9$ window of retinal output) increases with depth in 4 of 6 cells.
 \begin{figure}[t]\centering
@@ -177,7 +186,11 @@ These runs used lr $10^{-3}$, batch 32, centred inputs, flip only and the best-v
 \caption{Recipe of the text: linearity of the retinal response and local information kept by the retina against cortex depth (mean $\pm$ s.d.\ over 3 seeds, live channels only).}\label{fig:lin}
 \end{figure}
 
-\paragraph{CIFAR-10 control and why it failed.} With the recipe of the text the paper's own setting gave accuracy $0.56$--$0.67$, 6 of 18 collapsed first attempts and 67\% of the retinal channels dead under the natural probe; the one-channel retina still had OSI $1.60$ (three seeds), but its pre-registered prediction (at depth 4) missed both bounds narrowly. A recipe check (input centring, flip, checkpoint; one seed) changed nothing, and initialising the biases from Glorot-uniform, as the text says, left 4 and 13 of 32 channels alive (two variants; zero biases: 3). The dead channels are dying ReLUs: none is dead at initialisation, and in one 32-channel network 16 of the 29 channels silent at the image centre never fire on any test image (their weights shrink to a third of the norm of the live ones), 6 fire only near the border and 7 on at most 1.2\% of the images. The learning rate of $10^{-3}$, ten times the authors', is the classical cause, and the runs with the authors' recipe confirm it (R1).
+\paragraph{CIFAR-10 control and why it failed.} With the recipe of the text (Table~\ref{tab:ctrl}) the paper's own setting gave accuracy $0.56$--$0.67$, 6 of 18 collapsed first attempts and 67\% of the retinal channels dead under the natural probe; the one-channel retina still had OSI $1.60$ (three seeds), but its pre-registered prediction (at depth 4) missed both bounds narrowly. A recipe check (input centring, flip, checkpoint; one seed) changed nothing, and initialising the biases from Glorot-uniform, as the text says, left 4 and 13 of 32 channels alive (two variants; zero biases: 3). The dead channels are dying ReLUs: none is dead at initialisation, and in one 32-channel network 16 of the 29 channels silent at the image centre never fire on any test image (their weights shrink to a third of the norm of the live ones), 6 fire only near the border and 7 on at most 1.2\% of the images. The learning rate of $10^{-3}$, ten times the authors', is the classical cause, and the runs with the authors' recipe confirm it (R1).
+\begin{table}[t]\centering\small
+\input{tab_control}
+\caption{Recipe of the text, CIFAR-10 control (paper's architecture, natural probe): collapsed first attempts, live channels out of the channels of the 3 seeds, center-surround labels and OSI (my implementation).}\label{tab:ctrl}
+\end{table}
 
 \paragraph{Bridge experiment.} With the same recipe I also walked from the failed control to my setup one factor at a time (fewer images, STL-10 images, pooling head, 96 pixels; 5 seeds; Table~\ref{tab:bridge}). By its registered rule (contrast $\Delta$ between the median OSI at $\NBN=32$ and at $\NBN\in\{1,4\}$) it was inconclusive, because the control itself had 145 of 160 channels dead at $\NBN=32$; the design was not blind to the earlier results. Post hoc, the one-channel retina had OSI $<2$ in 15 of 20 networks with the paper's head or CIFAR-10 images, and in 3 of 10 with STL-10 images and my pooling head ($p=0.045$, uncorrected; $p=0.63$ with the threshold $1.23$); the dead channels followed the head (66--91\% with flatten and dense layers, 9--29\% with pooling). With this recipe these numbers mix the effect of the setting with that of dying ReLUs, so I do not use them for conclusions.
 \begin{table}[t]\centering\footnotesize
@@ -185,6 +198,7 @@ These runs used lr $10^{-3}$, batch 32, centred inputs, flip only and the best-v
 \caption{Recipe of the text, bridge experiment (retina depth 2, cortex depth 2, 5 seeds): channels dead out of 160 at $\NBN=32$, median OSI of the five one-channel retinas (in brackets: how many below 2), and the registered contrast $\Delta$ with its 90\% bootstrap interval.}\label{tab:bridge}
 \end{table}
 
+\FloatBarrier
 \section{Discussion}\label{sec:disc}
 \paragraph{The paper's claim holds in its own setting.} With the authors' recipe, three seeds and my port of their analysis, CIFAR-10 gives back the paper's numbers: an isotropic, center-surround one-channel retina ($1.83\pm0.38$ against $1.56\pm0.22$), an oriented first cortical layer ($3.22\pm0.62$ against $3.05\pm0.30$) and an oriented 32-channel retina. The registered contrast with the wide retina holds, narrowly on the black probe and clearly on the natural one. Table~\ref{tab:claims} summarises each claim.
 

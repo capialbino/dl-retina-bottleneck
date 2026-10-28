@@ -178,3 +178,50 @@ for c, ds, n, res, head in BR:
     rows.append([c.replace('_', '\\_'), ds, n, res, head, f'{(w.label == "dead").sum()}/{len(w)}', f'{b1.osi.median():.2f} ({(b1.osi < 2).sum()}/{len(b1)})', f'{delta_median(d):.2f} [{lo:.2f}, {hi:.2f}]'.replace('-', '$-$')])
 tex(pd.DataFrame(rows, columns=['Condition', 'Images', 'Train', 'Res.', 'Head', 'Dead, $N_{BN}$=32', 'OSI, $N_{BN}$=1 ($<$2)', '$\\Delta$ [90\\% interval]']), 'tab_bridge', index=False, column_format='llrrlrrr')
 print('tables written')
+
+# ---- official recipe (the authors' code settings): table and receptive-field montage -----------------------------------------
+from pathlib import Path
+of = pd.concat([pd.read_csv(p) for p in sorted(Path('results/official').glob('filters_*.csv'))], ignore_index=True)
+orun = pd.concat([pd.read_csv(p) for p in sorted(Path('results/official').glob('runs_*.csv'))], ignore_index=True)
+OFF_NAME = dict(NAME, cifar10='CIFAR-10')
+def osi_cell(d, layer, probe):
+    g = d[(d.layer == layer) & (d.probe == probe)]; v = g.loc[~g.zero_grad, 'osi_official']
+    if len(v) == 0:
+        return f'-- (0/{len(g)})'
+    ci = f' $\\pm$ {1.96 * v.std(ddof=0) / np.sqrt(len(v)):.2f}' if len(v) > 1 else ''  # 95% normal interval over channels, as in the registered rule
+    return f'{v.mean():.2f}{ci} ({len(v)}/{len(g)})'
+rows = []
+for ds, cls in [('cifar10', (2, 4)), ('stl10', (2,)), ('imagenette', (2,))]:
+    for cl in cls:
+        for b in (1, 4, 32):
+            d = of[(of.dataset == ds) & (of.bottleneck == b) & (of.cortex_layers == cl)]; a = orun[(orun.dataset == ds) & (orun.bottleneck == b) & (orun.cortex_layers == cl)]
+            nat = d[(d.layer == 'retina') & (d.probe == 'natural')]
+            acc_s = f'{a.test_acc.mean():.3f}' + (f' $\\pm$ {a.test_acc.std():.3f}' if len(a) > 1 else '') + ('' if len(a) == 3 else f' ({len(a)})')
+            rows.append([OFF_NAME[ds], b, cl, acc_s, osi_cell(d, 'retina', 'black'), osi_cell(d, 'retina', 'natural'),
+                         f'{(nat.label == "center-surround").sum()} / {(nat.label == "oriented").sum()}', osi_cell(d, 'cortex1', 'black')])
+tex(pd.DataFrame(rows, columns=['Data', '$N_{BN}$', 'D', 'Test acc.', 'Retina, black', 'Retina, natural', 'C-S / or.', 'Layer 1, black']), 'tab_official', index=False, column_format='lrrcllcl')
+print(pd.DataFrame(rows).to_string())
+
+ns['COLLAPSE_VAL'] = 0.2; run('0ff1c1a2')
+rows = []
+for ds in ('cifar10', 'stl10', 'imagenette'):
+    size = 32 if ds == 'cifar10' else ns['IMG_SIZE']; c = size // 2
+    x_te = (ns['cifar_splits']() if ds == 'cifar10' else ns['raw_splits'](ds))[1][0]
+    nat = x_te[torch.randperm(len(x_te), generator=torch.Generator().manual_seed(0))[:256]].float().div(255).to(ns['DEVICE'])
+    for bn in (1, 4, 32):
+        cfg = dict(bottleneck=bn, retina_layers=2, cortex_layers=2)
+        model = ns['off_model'](ds, cfg); model.load_state_dict(torch.load(f"checkpoints_official/{ds}_b{bn}_r2_c2_s0.pt", map_location='cpu')); model = model.to(ns['DEVICE']).eval()
+        rf = ns['layer_rfs'](model, 'retina', nat, size)[:, c - 8:c + 9, c - 8:c + 9]
+        rows.append((f'{OFF_NAME[ds]}, bottleneck {bn}', rf))
+fig, axes = plt.subplots(len(rows), ncol, figsize=(7.0, 0.72 * len(rows)))
+for r, (title, rf) in enumerate(rows):
+    liv = [x for x in rf if np.abs(x).max() > 1e-10][:ncol]
+    for c in range(ncol):
+        ax = axes[r, c]; ax.axis('off')
+        if c < len(liv):
+            m = np.abs(liv[c]).max(); ax.imshow(liv[c], cmap='RdBu', vmin=-m, vmax=m)
+    axes[r, 0].text(-0.15, 0.5, title, transform=axes[r, 0].transAxes, ha='right', va='center', fontsize=7)
+    axes[r, ncol - 1].text(1.1, 0.5, f'{sum(np.abs(x).max() > 1e-10 for x in rf)} of {len(rf)} live' + (f' (first {ncol} shown)' if len(liv) == ncol else ''), transform=axes[r, ncol - 1].transAxes, ha='left', va='center', fontsize=6, color='#52514e')
+plt.subplots_adjust(left=0.30, right=0.88, wspace=0.05, hspace=0.12)
+savefig('fig_rfs_official')
+print('official recipe written')
